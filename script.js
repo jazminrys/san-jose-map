@@ -6,7 +6,7 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 
 let demographics = {};
 let geoLayer = null;
-let colorMode = 'age'; // default
+let colorMode = 'age'; // default mode
 
 fetch('demographics.json')
   .then(res => res.json())
@@ -34,26 +34,25 @@ function loadGeoJSON() {
     });
 }
 
-// Age = Blue scale
 function getAgeColor(percent) {
-  if (percent > 30) return "#08306b";
-  if (percent > 20) return "#2171b5";
-  if (percent > 15) return "#4292c6";
-  if (percent > 10) return "#6baed6";
-  if (percent > 5)  return "#9ecae1";
-  return "#c6dbef";
+  if (percent > 30) return "#800026";
+  if (percent > 20) return "#BD0026";
+  if (percent > 15) return "#E31A1C";
+  if (percent > 10) return "#FC4E2A";
+  if (percent > 5)  return "#FD8D3C";
+  if (percent > 2)  return "#FEB24C";
+  return "#FFEDA0";
 }
 
-// Income = Yellow to brown scale
 function getIncomeColor(bin) {
   switch (bin) {
-    case "200,000 or more": return "#8c510a";
-    case "150,000 to $199,999": return "#bf812d";
-    case "$100,000 to $149,999": return "#dfc27d";
-    case "$75,000 to $99,999": return "#f6e8c3";
-    case "$50,000 to $74,999": return "#fbe9a1";
-    case "Less than $50,000": return "#ffffcc";
-    default: return "#f7f7f7";
+    case "200,000 or more": return "#08306b";
+    case "150,000 to $199,999": return "#2171b5";
+    case "$100,000 to $149,999": return "#4292c6";
+    case "$75,000 to $99,999": return "#6baed6";
+    case "$50,000 to $74,999": return "#9ecae1";
+    case "Less than $50,000": return "#c6dbef";
+    default: return "#f7fbff";
   }
 }
 
