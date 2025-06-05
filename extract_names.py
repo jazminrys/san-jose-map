@@ -30,7 +30,7 @@ for name in names:
         "age": age_bins_template.copy()
     }
 
-with open('demographics_backup.json', 'w') as out:
+with open('demographics.json', 'w') as out:
     json.dump(result, out, indent=2)
 
 print("demographics.json created with empty bins")
