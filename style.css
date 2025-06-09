@@ -6,3 +6,33 @@ body {
   height: 90vh; 
   width: 100%;   
 }
+h1 {
+  text-align: center;
+  font-size: 2.5em;
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
+#controls {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+.legend {
+  background: white;
+  padding: 10px 16px;
+  line-height: 1.5;
+  border-radius: 6px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  font-size: 14px;
+  color: #222;
+}
+.legend i {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  margin-right: 8px;
+  vertical-align: middle;
+  border-radius: 3px;
+  border: 1px solid #ccc;
+}

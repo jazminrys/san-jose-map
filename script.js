@@ -21,12 +21,13 @@ fetch('groups.json')
   demographics = data;
   loadGeoJSON(showGroups);
 });
-function setColorMode(mode) { //switching between tabs
-   colorMode = mode;
-   if (geoLayer) {
-     geoLayer.clearLayers();
-     loadGeoJSON();
+function setColorMode(mode) {
+  colorMode = mode;
+  if (geoLayer) {
+    geoLayer.clearLayers();
+    loadGeoJSON();
   }
+  updateLegend();
 }
 
 function loadGeoJSON(showGroupsMode = true) {
@@ -76,14 +77,14 @@ function getAgeColor(percent) {
 
 function getIncomeColor(bin) {
    switch (bin) {
-     case "200,000 or more": return "#b05e00";
-     case "150,000 to $199,999": return "#e18c0d";
-     case "$100,000 to $149,999": return "#f5a623";
-     case "$75,000 to $99,999": return "#fbc75d";
-     case "$50,000 to $74,999": return "#fde7a3";
-     case "Less than $50,000": return "#fff5d6";
-     default: return "#f2efe7";
-  }
+   case "Less than $50,000": return "#fff5d6";    
+   case "$50,000 to $74,999": return "#fde7a3";  
+   case "$75,000 to $99,999": return "#fbc75d";  
+   case "$100,000 to $149,999": return "#f5a623"; 
+   case "$150,000 to $199,999": return "#e18c0d"; 
+   case "$200,000 or more": return "#b05e00";   
+   default: return "#f2efe7";                    
+   }
 }
 
 function getMedianIncomeBin(income) {
@@ -137,28 +138,39 @@ function featureStyle(feature) { //style the features
   };
 }
 
-function onEachFeature(feature, layer) { // calculate percentage of old people 
+function onEachFeature(feature, layer) {
    const name = feature.properties.NAME;
    const isGroup = groups.hasOwnProperty(name);
    const demo = isGroup ? mergeDemographics(new Set(groups[name]), demographics) : demographics[name];
-   if (!demo) return layer.bindPopup(`<strong>${name}</strong><br>No data available.`);
+
+   if (!demo || !demo.age || !demo.income) {
+     layer.bindPopup(`<strong>${name}</strong><br>No information on neighborhood available`);
+     return;
+   }
 
    const ageTotal = Object.values(demo.age).reduce((sum, val) => sum + val, 0);
    const over65 = demo.age["Over 65"] || 0;
-   const percentOver65 = ((over65 / ageTotal) * 100).toFixed(1);
+   const age35to64 = demo.age["35 to 64"] || 0;
+   const percentOver65 = ageTotal > 0 ? ((over65 / ageTotal) * 100).toFixed(1) : "N/A";
+   const percent35to64 = ageTotal > 0 ? ((age35to64 / ageTotal) * 100).toFixed(1) : "N/A";
    const medianIncome = getMedianIncomeBin(demo.income);
 
-   const popup = `
-     <strong>${name}</strong><br>
-     <b> Median Income:</b> ${medianIncome}<br>
-     <b>% Over Age 65:</b> ${percentOver65}% `;
+   let popup = `<strong>${name}</strong><br>`;
+   if (colorMode === 'income') {
+     popup += `<b> Median Income:</b> ${medianIncome}`;
+   } else if (colorMode === 'age35to64') {
+     popup += `<b>% Age 35–64:</b> ${percent35to64}%`;
+   } else {
+     popup += `<b>% Over Age 65:</b> ${percentOver65}%`;
+   }
    layer.bindPopup(popup);
+
    layer.on("mouseover", function () {
      this.setStyle({ weight: 2, fillOpacity: 0.9 });
-  });
+   });
    layer.on("mouseout", function () {
      this.setStyle({ weight: 1, fillOpacity: 0.6 });
-  });
+   });
 }
 
 map.on('zoomend', function() {
@@ -170,4 +182,45 @@ map.on('zoomend', function() {
     loadGeoJSON(showGroups);
   }
 });
+
+const legend = L.control({ position: 'bottomright' });
+
+legend.onAdd = function (map) {
+  const div = L.DomUtil.create('div', 'legend');
+  div.innerHTML = ''; // Will be set by updateLegend()
+  return div;
+};
+
+legend.addTo(map);
+
+function updateLegend() {
+  const div = document.querySelector('.legend');
+  if (!div) return;
+  if (colorMode === 'income') {
+    const grades = [
+      "Less than $50,000",
+      "$50,000 to $74,999",
+      "$75,000 to $99,999",
+      "$100,000 to $149,999",
+      "$150,000 to $199,999",
+      "$200,000 or more"
+    ];
+    div.innerHTML = '<b>Median Income</b><br>';
+    for (let i = 0; i < grades.length; i++) {
+      div.innerHTML +=
+        `<i style="background:${getIncomeColor(grades[i])};"></i> ${grades[i]}<br>`;
+    }
+  } else {
+    // Age legend
+    const grades = [0, 2, 5, 10, 15, 20, 30];
+    const labels = [
+      "0–2%", "2–5%", "5–10%", "10–15%", "15–20%", "20–30%", "30%+"
+    ];
+    div.innerHTML = '<b>% Age 65+</b><br>';
+    for (let i = 0; i < grades.length; i++) {
+      div.innerHTML +=
+        `<i style="background:${getAgeColor(grades[i] + 0.1)};"></i> ${labels[i]}<br>`;
+    }
+  }
+}
 
