@@ -36,3 +36,33 @@ h1 {
   border-radius: 3px;
   border: 1px solid #ccc;
 }
+#sidebar {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 320px;
+  height: 100vh;
+  background: #fff;
+  border-left: 1px solid #ccc;
+  box-shadow: -2px 0 8px rgba(0,0,0,0.07);
+  padding: 24px 18px;
+  overflow-y: auto;
+  z-index: 1001;
+  font-size: 1em;
+  display: none; /* Hidden by default */
+}
+@media (max-width: 700px) {
+  #sidebar {
+    width: 100vw;
+    position: absolute;
+    top: auto;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 40vh;
+    border-left: none;
+    border-top: 1px solid #ccc;
+    box-shadow: 0 -2px 8px rgba(0,0,0,0.07);
+    padding: 16px 8px;
+  }
+}

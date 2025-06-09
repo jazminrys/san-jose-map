@@ -145,25 +145,50 @@ function onEachFeature(feature, layer) {
 
    if (!demo || !demo.age || !demo.income) {
      layer.bindPopup(`<strong>${name}</strong><br>No information on neighborhood available`);
-     return;
-   }
-
-   const ageTotal = Object.values(demo.age).reduce((sum, val) => sum + val, 0);
-   const over65 = demo.age["Over 65"] || 0;
-   const age35to64 = demo.age["35 to 64"] || 0;
-   const percentOver65 = ageTotal > 0 ? ((over65 / ageTotal) * 100).toFixed(1) : "N/A";
-   const percent35to64 = ageTotal > 0 ? ((age35to64 / ageTotal) * 100).toFixed(1) : "N/A";
-   const medianIncome = getMedianIncomeBin(demo.income);
-
-   let popup = `<strong>${name}</strong><br>`;
-   if (colorMode === 'income') {
-     popup += `<b> Median Income:</b> ${medianIncome}`;
-   } else if (colorMode === 'age35to64') {
-     popup += `<b>% Age 35–64:</b> ${percent35to64}%`;
    } else {
-     popup += `<b>% Over Age 65:</b> ${percentOver65}%`;
+     const ageTotal = Object.values(demo.age).reduce((sum, val) => sum + val, 0);
+     const over65 = demo.age["Over 65"] || 0;
+     const age35to64 = demo.age["35 to 64"] || 0;
+     const percentOver65 = ageTotal > 0 ? ((over65 / ageTotal) * 100).toFixed(1) : "N/A";
+     const percent35to64 = ageTotal > 0 ? ((age35to64 / ageTotal) * 100).toFixed(1) : "N/A";
+     const medianIncome = getMedianIncomeBin(demo.income);
+
+     let popup = `<strong>${name}</strong><br>`;
+popup += `<b>Median Income:</b> ${medianIncome}<br>`;
+popup += `<b>% Over Age 65:</b> ${percentOver65}%`;
+     layer.bindPopup(popup);
    }
-   layer.bindPopup(popup);
+
+   // Sidebar logic
+   layer.on("click", function () {
+     const sidebar = document.getElementById('sidebar');
+     let html = `<button id="closeSidebar" style="float:right;font-size:1.2em;">&times;</button>`;
+     html += `<h2>${name}</h2>`;
+     if (!demo || !demo.age || !demo.income) {
+       html += `<p>No information on neighborhood available</p>`;
+     } else {
+       html += `<h3>Income</h3><ul>`;
+       const incomeTotal = Object.values(demo.income).reduce((sum, val) => sum + val, 0);
+for (const [bin, val] of Object.entries(demo.income)) {
+  const percent = incomeTotal > 0 ? ((val / incomeTotal) * 100).toFixed(1) : "N/A";
+  html += `<li>${bin}: ${val} &asymp; ${percent}%</li>`;
+}
+       html += `</ul><h3>Age</h3><ul>`;
+       const ageTotal = Object.values(demo.age).reduce((sum, val) => sum + val, 0);
+       for (const [age, val] of Object.entries(demo.age)) {
+         const percent = ageTotal > 0 ? ((val / ageTotal) * 100).toFixed(1) : "N/A";
+         html += `<li>${age}: ${val} &asymp; ${percent}%</li>`;
+       }
+       html += `</ul>`;
+     }
+     sidebar.innerHTML = html;
+     sidebar.style.display = 'block';
+
+     // Add close button event
+     document.getElementById('closeSidebar').onclick = function() {
+       sidebar.style.display = 'none';
+     };
+   });
 
    layer.on("mouseover", function () {
      this.setStyle({ weight: 2, fillOpacity: 0.9 });
