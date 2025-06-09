@@ -8,6 +8,7 @@ let demographics = {};
 let geoLayer = null;
 let colorMode = 'age'; 
 let groups = {};  
+let showGroups = true; // true = show groups, false = show individuals
 
 fetch('groups.json')
  .then(res=> res.json())
@@ -17,9 +18,9 @@ fetch('groups.json')
     })
        .then(res => res.json())
        .then(data => {
-         demographics = data;
-         loadGeoJSON();
-  });
+  demographics = data;
+  loadGeoJSON(showGroups);
+});
 function setColorMode(mode) { //switching between tabs
    colorMode = mode;
    if (geoLayer) {
@@ -28,31 +29,40 @@ function setColorMode(mode) { //switching between tabs
   }
 }
 
-function loadGeoJSON() { //neighborhood dataset 
+function loadGeoJSON(showGroupsMode = true) {
   fetch('Neighborhoods.geojson')
-     .then(res => res.json())
-     .then(geojsonData => {
-       const features = geojsonData.features;
-       let usedNames = new Set();
-       let mergedFeatures = [];
-       for (const [ groupName, memberNames ] of Object.entries(groups)) {
-         const matches = features.filter(f => memberNames.includes(f.properties.NAME)); 
-         usedNames = new Set([...usedNames, ...memberNames]);
-         if(matches.length === 0) continue; //skip if no matches
-         let merged = matches[0];
-         for (let i = 1; i < matches.length; i++) {
-           merged = turf.union(merged, matches[i]); //merge features
+    .then(res => res.json())
+    .then(geojsonData => {
+      const features = geojsonData.features;
+      let usedNames = new Set();
+      let mergedFeatures = [];
+      if (showGroupsMode) {
+        // Add merged group features
+        for (const [groupName, memberNames] of Object.entries(groups)) {
+          const matches = features.filter(f => memberNames.includes(f.properties.NAME));
+          usedNames = new Set([...usedNames, ...memberNames]);
+          if (matches.length === 0) continue;
+          let merged = matches[0];
+          for (let i = 1; i < matches.length; i++) {
+            merged = turf.union(merged, matches[i]);
+          }
+          merged.properties.NAME = groupName;
+          mergedFeatures.push(merged);
         }
-         merged.properties.NAME = groupName; //set name of merged neighborhood
-         mergedFeatures.push(merged);
-      }
-       const others = features.filter(f => !usedNames.has(f.properties.NAME)); //get neighborhoods not in groups
-       const finalFeatures = [...others, ...mergedFeatures,];
-         geoLayer = L.geoJSON({type: "FeatureCollection", features: finalFeatures }, {
-           style: featureStyle,
-           onEachFeature: onEachFeature
+        // Add ungrouped neighborhoods
+        const ungrouped = features.filter(f => !usedNames.has(f.properties.NAME));
+        mergedFeatures = mergedFeatures.concat(ungrouped);
+        geoLayer = L.geoJSON({ type: "FeatureCollection", features: mergedFeatures }, {
+          style: featureStyle,
+          onEachFeature: onEachFeature
         }).addTo(map);
-      });
+      } else {
+        geoLayer = L.geoJSON({ type: "FeatureCollection", features: features }, {
+          style: featureStyle,
+          onEachFeature: onEachFeature
+        }).addTo(map);
+      }
+    });
 }
 function getAgeColor(percent) {
    if (percent > 30) return "#08306b";
@@ -66,26 +76,32 @@ function getAgeColor(percent) {
 
 function getIncomeColor(bin) {
    switch (bin) {
-     case "200,000 or more": return "#ffd700";
-     case "150,000 to $199,999": return "#ffec8b";
-     case "$100,000 to $149,999": return "#fffacd";
-     case "$75,000 to $99,999": return "#ffffe0";
-     case "$50,000 to $74,999": return "#fafad2";
-     case "Less than $50,000": return "#fafad2";
-     default: return "#FFEDA0";
+     case "200,000 or more": return "#b05e00";
+     case "150,000 to $199,999": return "#e18c0d";
+     case "$100,000 to $149,999": return "#f5a623";
+     case "$75,000 to $99,999": return "#fbc75d";
+     case "$50,000 to $74,999": return "#fde7a3";
+     case "Less than $50,000": return "#fff5d6";
+     default: return "#f2efe7";
   }
 }
 
-function getMostCommonIncome(income) {
-   let maxBin = null;
-   let maxValue = -1;
-   for (const [bin, value] of Object.entries(income)) {
-     if (value > maxValue) {
-       maxValue = value;
-       maxBin = bin;
-     }
+function getMedianIncomeBin(income) {
+   const sortedBins = [
+     "Less than $50,000",
+     "$50,000 to $74,999",
+     "$75,000 to $99,999",
+     "$100,000 to $149,999",
+     "$150,000 to $199,999",
+     "$200,000 or more"
+   ];
+   const total = sortedBins.reduce((sum, bin) => sum + (income[bin] || 0), 0);
+   let cumulative = 0;
+   for (let bin of sortedBins) {
+     cumulative += income[bin] || 0;
+     if (cumulative >= total/2) return bin;
    }
-   return maxBin || "N/A";
+   return "N/A";
 }
 
 function mergeDemographics(groupSet, data) {
@@ -108,7 +124,7 @@ function featureStyle(feature) { //style the features
    const ageTotal = Object.values(demo.age).reduce((sum, val) => sum + val, 0);
    const over65 = demo.age["Over 65"] || 0;
    const percentOver65 = (over65 / ageTotal) * 100;
-   const medianBin = getMostCommonIncome(demo.income);
+   const medianBin = getMedianIncomeBin(demo.income);
    const fillColor = colorMode === 'income'
      ? getIncomeColor(medianBin)
      : getAgeColor(percentOver65);
@@ -130,21 +146,28 @@ function onEachFeature(feature, layer) { // calculate percentage of old people
    const ageTotal = Object.values(demo.age).reduce((sum, val) => sum + val, 0);
    const over65 = demo.age["Over 65"] || 0;
    const percentOver65 = ((over65 / ageTotal) * 100).toFixed(1);
-   const commonIncome = getMostCommonIncome(demo.income);
+   const medianIncome = getMedianIncomeBin(demo.income);
 
    const popup = `
      <strong>${name}</strong><br>
-     <b>Income:</b> ${commonIncome}<br>
-     <b>% Over Age 65:</b> ${percentOver65}%
-  `;
+     <b> Median Income:</b> ${medianIncome}<br>
+     <b>% Over Age 65:</b> ${percentOver65}% `;
    layer.bindPopup(popup);
-
    layer.on("mouseover", function () {
      this.setStyle({ weight: 2, fillOpacity: 0.9 });
   });
-
    layer.on("mouseout", function () {
      this.setStyle({ weight: 1, fillOpacity: 0.6 });
   });
 }
+
+map.on('zoomend', function() {
+  const zoom = map.getZoom();
+  let shouldShowGroups = zoom < 13; // adjust threshold as needed
+  if (shouldShowGroups !== showGroups) {
+    showGroups = shouldShowGroups;
+    if (geoLayer) geoLayer.clearLayers();
+    loadGeoJSON(showGroups);
+  }
+});
 
