@@ -18,6 +18,17 @@ h1 {
   gap: 10px;
   margin-bottom: 20px;
 }
+
+.age-btn {
+  background: #01579e;
+  color: rgb(247, 242, 242);
+  border: none;
+}
+.income-btn {
+  background:rgb(225, 118, 3);
+  color: rgb(245, 245, 245);
+  border: none;
+}
 .legend {
   background: white;
   padding: 10px 16px;
