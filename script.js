@@ -151,13 +151,13 @@ function onEachFeature(feature, layer) {
   }
 
   layer.on("click", function (e) {
-    // Toggle selection
+   
     if (selectedNeighborhoods.has(name)) {
       selectedNeighborhoods.delete(name);
-      this.setStyle({ weight: 1, fillOpacity: 0.6 }); 
+      this.setStyle({ weight: 1, fillOpacity: 0.6 }); // un-highlight
     } else {
       selectedNeighborhoods.add(name);
-      this.setStyle({ weight: 3, fillOpacity: 0.9 }); 
+      this.setStyle({ weight: 3, fillOpacity: 0.9 }); // highlight
     }
     updateSidebarForSelection();
   });
@@ -221,7 +221,7 @@ function updateSidebarForSelection() {
     sidebar.style.display = 'block';
     return;
   }
-
+  // Merge demographics
   let merged = { income: {}, age: {} };
   let first = true;
   for (const name of selectedNeighborhoods) {
@@ -275,7 +275,7 @@ function updateSidebarForSelection() {
     selectedNeighborhoods.clear();
     geoLayer.eachLayer(l => l.setStyle({ weight: 1, fillOpacity: 0.6 }));
   };
-  
+
   sidebar.querySelectorAll('.remove-neigh').forEach(btn => {
     btn.onclick = function() {
       const name = this.getAttribute('data-name');
