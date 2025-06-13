@@ -8,7 +8,7 @@ body {
 }
 h1 {
   text-align: center;
-  font-size: 2.5em;
+  font-size: 4em;
   margin-top: 20px;
   margin-bottom: 20px;
 }
@@ -17,6 +17,11 @@ h1 {
   justify-content: center;
   gap: 10px;
   margin-bottom: 20px;
+}
+
+.age-btn,
+.income-btn {
+  font-size: 1.5em; 
 }
 
 .age-btn {
@@ -31,49 +36,51 @@ h1 {
 }
 .legend {
   background: white;
-  padding: 10px 16px;
-  line-height: 1.5;
-  border-radius: 6px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-  font-size: 14px;
+  padding: 20px 28px;      
+  line-height: 2;         
+  border-radius: 8px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.18);
+  font-size: 2em;        
   color: #222;
 }
 .legend i {
   display: inline-block;
-  width: 18px;
-  height: 18px;
-  margin-right: 8px;
+  width: 28px;            
+  margin-right: 12px;
   vertical-align: middle;
-  border-radius: 3px;
+  border-radius: 4px;
   border: 1px solid #ccc;
 }
 #sidebar {
   position: fixed;
   top: 0;
-  right: 0;
-  width: 320px;
+  left: 0;            
+  right: auto;          
+  width: 450px;
   height: 100vh;
   background: #fff;
-  border-left: 1px solid #ccc;
-  box-shadow: -2px 0 8px rgba(0,0,0,0.07);
-  padding: 24px 18px;
+  border-right: 1px solid #ccc;  
+  border-left: none;             
+  box-shadow: 2px 0 8px rgba(0,0,0,0.07); 
   overflow-y: auto;
   z-index: 1001;
-  font-size: 1em;
-  display: none; /* Hidden by default */
+  font-size: 1.4em; 
+  display: none; 
 }
 @media (max-width: 700px) {
   #sidebar {
     width: 100vw;
-    position: absolute;
-    top: auto;
-    bottom: 0;
     left: 0;
     right: 0;
+    top: auto;
+    bottom: 0;
     height: 40vh;
-    border-left: none;
+    border-right: none;
     border-top: 1px solid #ccc;
     box-shadow: 0 -2px 8px rgba(0,0,0,0.07);
     padding: 16px 8px;
   }
+}
+.leaflet-popup-content {
+  font-size: 2em; 
 }
