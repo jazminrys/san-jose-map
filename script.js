@@ -154,10 +154,10 @@ function onEachFeature(feature, layer) {
     // Toggle selection
     if (selectedNeighborhoods.has(name)) {
       selectedNeighborhoods.delete(name);
-      this.setStyle({ weight: 1, fillOpacity: 0.6 }); 
+      this.setStyle({ weight: 1, fillOpacity: 0.6 }); // un-highlight
     } else {
       selectedNeighborhoods.add(name);
-      this.setStyle({ weight: 3, fillOpacity: 0.9 }); 
+      this.setStyle({ weight: 3, fillOpacity: 0.9 }); // highlight
     }
     updateSidebarForSelection();
   });
@@ -221,7 +221,7 @@ function updateSidebarForSelection() {
     sidebar.style.display = 'block';
     return;
   }
-
+  // Merge demographics
   let merged = { income: {}, age: {} };
   let first = true;
   for (const name of selectedNeighborhoods) {
@@ -237,13 +237,13 @@ function updateSidebarForSelection() {
       for (const k in demo.age) merged.age[k] = (merged.age[k] || 0) + (demo.age[k] || 0);
     }
   }
-
+  // Calculate stats
   const ageTotal = Object.values(merged.age).reduce((sum, val) => sum + val, 0);
   const over65 = merged.age["Over 65"] || 0;
   const percentOver65 = ageTotal > 0 ? ((over65 / ageTotal) * 100).toFixed(1) : "N/A";
   const medianIncome = getMedianIncomeBin(merged.income);
 
-
+  // Build HTML
   let html = `<button id="closeSidebar" style="float:right;font-size:1.2em;">&times;</button>`;
   html += `<h2>${[...selectedNeighborhoods].join(", ")}</h2>`;
   html += `<p><b>Median Income:</b> ${medianIncome}</p>`;
@@ -275,7 +275,7 @@ function updateSidebarForSelection() {
     selectedNeighborhoods.clear();
     geoLayer.eachLayer(l => l.setStyle({ weight: 1, fillOpacity: 0.6 }));
   };
-  
+  // Remove neighborhood from selection
   sidebar.querySelectorAll('.remove-neigh').forEach(btn => {
     btn.onclick = function() {
       const name = this.getAttribute('data-name');
