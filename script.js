@@ -151,13 +151,13 @@ function onEachFeature(feature, layer) {
   }
 
   layer.on("click", function (e) {
-   
+  
     if (selectedNeighborhoods.has(name)) {
       selectedNeighborhoods.delete(name);
-      this.setStyle({ weight: 1, fillOpacity: 0.6 }); // un-highlight
+      this.setStyle({ weight: 1, fillOpacity: 0.6 }); 
     } else {
       selectedNeighborhoods.add(name);
-      this.setStyle({ weight: 3, fillOpacity: 0.9 }); // highlight
+      this.setStyle({ weight: 3, fillOpacity: 0.9 }); 
     }
     updateSidebarForSelection();
   });
@@ -187,30 +187,33 @@ legend.onAdd = function (map) {
   return div;
 };
 legend.addTo(map);
+updateLegend();
 
 function updateLegend() {
   const div = document.querySelector('.legend');
   if (!div) return;
+
   if (colorMode === 'income') {
-    const grades = [
-      "Less than $50,000",
-      "$50,000 to $74,999",
-      "$75,000 to $99,999",
-      "$100,000 to $149,999",
-      "$150,000 to $199,999",
-      "$200,000 or more"
-    ];
-    div.innerHTML = '<b>Median Income</b><br>';
-    for (let i = 0; i < grades.length; i++) {
-      div.innerHTML += `<i style="background:${getIncomeColor(grades[i])};"></i> ${grades[i]}<br>`;
-    }
+    div.innerHTML = `
+      <b>Median Income</b><br>
+      <i style="background:#b05e00"></i> $200,000+<br>
+      <i style="background:#e18c0d"></i> $150,000–$199,999<br>
+      <i style="background:#f5a623"></i> $100,000–$149,999<br>
+      <i style="background:#fbc75d"></i> $75,000–$99,999<br>
+      <i style="background:#fde7a3"></i> $50,000–$74,999<br>
+      <i style="background:#fff5d6"></i> &lt; $50,000
+    `;
   } else {
-    const grades = [0, 2, 5, 10, 15, 20, 30];
-    const labels = ["0–2%", "2–5%", "5–10%", "10–15%", "15–20%", "20–30%", "30%+"];
-    div.innerHTML = '<b>% Age 65+</b><br>';
-    for (let i = 0; i < grades.length; i++) {
-      div.innerHTML += `<i style="background:${getAgeColor(grades[i] + 0.1)};"></i> ${labels[i]}<br>`;
-    }
+    div.innerHTML = `
+      <b>% Over Age 65+</b><br>
+      <i style="background:#08306b"></i> 30%+<br>
+      <i style="background:#2171b5"></i> 20–30%<br>
+      <i style="background:#4292c6"></i> 15–20%<br>
+      <i style="background:#6baed6"></i> 10–15%<br>
+      <i style="background:#9ecae1"></i> 5–10%<br>
+      <i style="background:#c6dbef"></i> 2–5%<br>
+      <i style="background:#d9ecff"></i> &lt;2%
+    `;
   }
 }
 
@@ -221,7 +224,7 @@ function updateSidebarForSelection() {
     sidebar.style.display = 'block';
     return;
   }
-  // Merge demographics
+ 
   let merged = { income: {}, age: {} };
   let first = true;
   for (const name of selectedNeighborhoods) {
@@ -237,7 +240,7 @@ function updateSidebarForSelection() {
       for (const k in demo.age) merged.age[k] = (merged.age[k] || 0) + (demo.age[k] || 0);
     }
   }
-
+  // Calculate stats
   const ageTotal = Object.values(merged.age).reduce((sum, val) => sum + val, 0);
   const over65 = merged.age["Over 65"] || 0;
   const percentOver65 = ageTotal > 0 ? ((over65 / ageTotal) * 100).toFixed(1) : "N/A";
