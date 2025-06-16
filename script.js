@@ -240,7 +240,7 @@ function updateSidebarForSelection() {
       for (const k in demo.age) merged.age[k] = (merged.age[k] || 0) + (demo.age[k] || 0);
     }
   }
-  // Calculate stats
+ 
   const ageTotal = Object.values(merged.age).reduce((sum, val) => sum + val, 0);
   const over65 = merged.age["Over 65"] || 0;
   const percentOver65 = ageTotal > 0 ? ((over65 / ageTotal) * 100).toFixed(1) : "N/A";
@@ -250,7 +250,8 @@ function updateSidebarForSelection() {
   let html = `<button id="closeSidebar" style="float:right;font-size:1.2em;">&times;</button>`;
   html += `<h2>${[...selectedNeighborhoods].join(", ")}</h2>`;
   html += `<p><b>Median Income:</b> ${medianIncome}</p>`;
-  html += `<p><b>% Over Age 65:</b> ${percentOver65}%</p>`;
+  html += `<p><b>Percent of Population Age 65+:</b> ${percentOver65}%</p>`;
+  html += `<p><b>Total Population:</b> ${ageTotal.toLocaleString()}</p>`; // <-- Add this line here
   html += `<h3>Income</h3><ul>`;
   const incomeTotal = Object.values(merged.income).reduce((sum, val) => sum + val, 0);
   for (const [bin, val] of Object.entries(merged.income)) {
